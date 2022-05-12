@@ -193,35 +193,47 @@ def test(ValidData,split_name):
 
 
 
-
+# best_valid_loss not used
 best_valid_loss = 10000000000
 best_valid_avgAUPR=-1
 best_valid_avgAUC=-1
 best_test_avgAUC=-1
+best_test_avgAUPR=-1
+# save valid and test metrics of best model
+valid_metrics_best_model = []
+test_metrics_best_model = []
 if(args.test_on_saved_model==False):
     # train model and save best one
     for epoch in range(0, args.epochs):
         print('---------------------------------------- Training '+str(epoch+1)+' -----------------------------------')
         predictions,diff_targets,alpha_train,beta_train,train_loss,_ = train(Train)
-        train_avgAUPR, train_avgAUC = evaluate.compute_metrics(predictions,diff_targets)
+        # Future work: refactor how the return values are stored to make
+        # accessing, printing with metric names, and manipulation easier
+        train_avgAUPR, train_medAUPR, train_varAUPR, train_avgAUC, train_medAUC, train_varAUC = evaluate.compute_metrics(predictions,diff_targets)
 
         predictions,diff_targets,alpha_valid,beta_valid,valid_loss,gene_ids_valid = test(Valid,"Validation")
-        valid_avgAUPR, valid_avgAUC = evaluate.compute_metrics(predictions,diff_targets)
+        valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC = evaluate.compute_metrics(predictions,diff_targets)
 
         predictions,diff_targets,alpha_test,beta_test,test_loss,gene_ids_test = test(Test,'Testing')
-        test_avgAUPR, test_avgAUC = evaluate.compute_metrics(predictions,diff_targets)
+        test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC = evaluate.compute_metrics(predictions,diff_targets)
 
+        # use avgAUC to determine best model
         if(valid_avgAUC >= best_valid_avgAUC):
-                # save best epoch -- models converge early
+            # save best epoch -- models converge early
+            print(f'Saving new best model at epoch {epoch}...')
             best_valid_avgAUC = valid_avgAUC
             best_test_avgAUC = test_avgAUC
+            valid_metrics_best_model = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
+            test_metrics_best_model = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
             torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUC_model.pt')
             model.type(dtype)
 
         print("Epoch:",epoch)
+        # train, valid, test metrics for the epoch
         print("train avgAUC:",train_avgAUC)
         print("valid avgAUC:",valid_avgAUC)
         print("test avgAUC:",test_avgAUC)
+        # metrics for best model
         print("best valid avgAUC:", best_valid_avgAUC)
         print("best test avgAUC:", best_test_avgAUC)
 
@@ -229,7 +241,8 @@ if(args.test_on_saved_model==False):
     print("\nFinished training")
     print("Best validation avgAUC:",best_valid_avgAUC)
     print("Best test avgAUC:",best_test_avgAUC)
-
+    print("copypaste header: test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC, valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC")
+    print(','.join([str(x) for x in test_metrics_best_model] + [str(x) for x in valid_metrics_best_model]))
 
 
     if(args.save_attention_maps):
@@ -249,8 +262,11 @@ else:
     # load model and test
     model=torch.load(model_dir+"/"+model_name+'_avgAUC_model.pt')
     predictions,diff_targets,alpha_test,beta_test,test_loss,gene_ids_test = test(Test)
-    test_avgAUPR, test_avgAUC = evaluate.compute_metrics(predictions,diff_targets)
-    print("test avgAUC:",test_avgAUC)
+    test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC = evaluate.compute_metrics(predictions,diff_targets)
+    test_metrics = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
+    print("\ntest avgAUC:",test_avgAUC)
+    print("copypaste header: test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC")
+    print(','.join([str(x) for x in test_metrics]))
 
     if(args.save_attention_maps):
         attentionfile=open(attentionmapfile,'w')
@@ -263,3 +279,5 @@ else:
                 gene_attention.append(str(e))
             attentionfilewriter.writerow(gene_attention)
         attentionfile.close()
+
+print('the model name: ',model_name)
