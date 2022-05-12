@@ -22,6 +22,8 @@ import gc
 import csv
 from pdb import set_trace as stop
 
+from timeit import default_timer as timer
+
 # python train.py --cell_type=Cell1 --model_name=attchrome --epochs=120 --lr=0.0001 --data_root=data/ --save_root=Results/
 
 parser = argparse.ArgumentParser(description='DeepDiff')
@@ -202,7 +204,10 @@ best_test_avgAUPR=-1
 # save valid and test metrics of best model
 valid_metrics_best_model = []
 test_metrics_best_model = []
+best_epoch = -1
 if(args.test_on_saved_model==False):
+    # measure training time
+    train_start_time = timer()
     # train model and save best one
     for epoch in range(0, args.epochs):
         print('---------------------------------------- Training '+str(epoch+1)+' -----------------------------------')
@@ -223,6 +228,7 @@ if(args.test_on_saved_model==False):
             print(f'Saving new best model at epoch {epoch}...')
             best_valid_avgAUC = valid_avgAUC
             best_test_avgAUC = test_avgAUC
+            best_epoch = epoch+1
             valid_metrics_best_model = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
             test_metrics_best_model = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
             torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUC_model.pt')
@@ -237,8 +243,12 @@ if(args.test_on_saved_model==False):
         print("best valid avgAUC:", best_valid_avgAUC)
         print("best test avgAUC:", best_test_avgAUC)
 
- 
+    train_end_time = timer()
+    # training time in hours
+    train_elapsed_time = round((train_end_time - train_start_time) / (60*60), 5)
     print("\nFinished training")
+    print("Training time (hours): ", train_elapsed_time)
+    print("Best epoch: ", best_epoch)
     print("Best validation avgAUC:",best_valid_avgAUC)
     print("Best test avgAUC:",best_test_avgAUC)
     print("copypaste header: test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC, valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC")
