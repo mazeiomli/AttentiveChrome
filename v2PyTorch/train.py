@@ -244,10 +244,10 @@ if(args.test_on_saved_model==False):
         print("best test avgAUC:", best_test_avgAUC)
 
     train_end_time = timer()
-    # training time in hours
-    train_elapsed_time = round((train_end_time - train_start_time) / (60*60), 5)
+    # training time in minutes
+    train_elapsed_time = round((train_end_time - train_start_time) / (60), 3)
     print("\nFinished training")
-    print("Training time (hours): ", train_elapsed_time)
+    print("Training time (min): ", train_elapsed_time)
     print("Best epoch: ", best_epoch)
     print("Best validation avgAUC:",best_valid_avgAUC)
     print("Best test avgAUC:",best_test_avgAUC)
