@@ -1,0 +1,13 @@
+name: attentive-chrome-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - scikit-learn
+  - numpy
+  - matplotlib
+  - torchvision
+  - pytorch
+  - cudatoolkit=11.3
+prefix: /home/lieric/miniconda3/envs/attentive-chrome-dev

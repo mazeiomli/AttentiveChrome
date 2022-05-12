@@ -1,21 +1,57 @@
-# AttentiveChrome
+# CMSC858D Final Project
+Eric Li
 
-Reference Paper: [Attend and Predict: Using Deep Attention Model to Understand Gene Regulation by Selective Attention on Chromatin](https://arxiv.org/abs/1708.00339)
+Spring 2022
 
-BibTex Citation:
+# Installation and Demo
+
+First install [miniconda](https://docs.conda.io/en/latest/miniconda.html).
+
+## Getting the development environment
+If you want to run the scripts (e.g. `train.py`, `evaluate.py`), you'll need the development environment.
+
+I was unable to install kipoi in this environment due to conda conflicts. To run AttentiveChrome through kipoi, please use the environment in the next subsection.
+
+To create the development conda environment, run
+
+`conda env create -f dev-environment.yml`
+
+If there are issues, try using `dev-environment-from-history.yml` which works
+better across platforms since packages' dependencies are not explicitly specified:
+
+`conda env create -f dev-environment-from-history.yml`
+
+Activate the environment
+
+`conda activate attentive-chrome-dev`
+
+You can now run training on the Toy dataset
+
 ```
-@inproceedings{singh2017attend,
-  title={Attend and Predict: Understanding Gene Regulation by Selective Attention on Chromatin},
-  author={Singh, Ritambhara and Lanchantin, Jack and Sekhon, Arshdeep  and Qi, Yanjun},
-  booktitle={Advances in Neural Information Processing Systems},
-  pages={6769--6779},
-  year={2017}
-}
+cd v2PyTorch/
+python3 v2PyTorch/train.py --cell_type Toy
 ```
 
-AttentiveChrome is a unified architecture to model and to interpret dependencies among chromatin factors for controlling gene regulation. AttentiveChrome uses a hierarchy of multiple Long short-term memory (LSTM) modules to encode the input signals and to model how various chromatin marks cooperate automatically. AttentiveChrome trains two levels of attention jointly with the target prediction, enabling it to attend differentially to relevant marks and to locate important positions per mark. We evaluate the model across 56 different cell types (tasks) in human. Not only is the proposed architecture more accurate, but its attention scores also provide a better interpretation than state-of-the-art feature visualization methods such as saliency map. 
+## Running AttentiveChrome through kipoi
 
-**Feature Generation for AttentiveChrome model:** 
+Install kipoi with pip following the [directions](https://kipoi.org/docs/#installation). Note that our models are type pytorch so it probably isn't necessary to downgrade h5py.
+
+Create the new conda environtment using kipoi
+
+`kipoi env create AttentiveChrome`
+
+
+Activate the environment
+
+`conda activate kipoi-AttentiveChrome`
+
+You can now run the AttentiveChrome demo script: [./v2PyTorch/attentiveChrome_kipoi_tutorial.py](./v2PyTorch/attentiveChrome_kipoi_tutorial.py)
+
+`python3 v2PyTorch/attentiveChrome_kipoi_tutorial.py`
+
+I was unable to install `jupyter` and `notebook` inside the `kipoi-AttentiveChrome` environment due to conda conflicts, so I couldn't run [./v2PyTorch/attentiveChrome_kipoi_tutorial.ipynb](./v2PyTorch/attentiveChrome_kipoi_tutorial.ipynb)
+
+# Feature Generation for AttentiveChrome model:
 
 We used the five core histone modification (listed in the paper) read counts from REMC database as input matrix. We downloaded the files from [REMC dabase](http://egg2.wustl.edu/roadmap/web_portal/processed_data.html#ChipSeq_DNaseSeq). We converted 'tagalign.gz' format to 'bam' by using the command:
 ```
@@ -31,7 +67,7 @@ We divided the genes into 3 separate sets for training, validation and testing. 
 
 We performed training and validation on the first 2 sets and then reported AUC scores of best performing epoch model for the third test data set. 
 
-**Datasets**
+# Datasets
 
 We have provided a toy dataset to test out model in the data subdirectory of v2PyTorch
 
@@ -44,7 +80,7 @@ e.g. 000003,1,4,3,0,8,4,1
 
 **Running The Model** 
 
-See the v1LuaTorch or v2PyTorch directories to run the code.
+See the v2PyTorch directory to run the code.
 
 
 
@@ -70,11 +106,13 @@ Attentive Chrome model can be run using Kipoi, which is a repository of predicti
 * torchvision-cpu
 
 ## Quick Start
-### Creating new conda environtment using kipoi
+Create the new conda environtment using kipoi
+
 `kipoi env create AttentiveChrome`
 
 
-### Activating environment
+Activate the environment
+
 `conda activate kipoi-AttentiveChrome`
 
 ## Command Line
@@ -130,8 +168,26 @@ Then, we can perform prediction on this single batch.
 
 This also returns a numpy array containing the output from the final softmax function.
 
+# Artifacts from Original README
 
-# We have extended attentiveChrome to DeepDiffChrome
+## Reference paper
+[Attend and Predict: Using Deep Attention Model to Understand Gene Regulation by Selective Attention on Chromatin](https://arxiv.org/abs/1708.00339)
+
+BibTex Citation:
+```
+@inproceedings{singh2017attend,
+  title={Attend and Predict: Understanding Gene Regulation by Selective Attention on Chromatin},
+  author={Singh, Ritambhara and Lanchantin, Jack and Sekhon, Arshdeep  and Qi, Yanjun},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={6769--6779},
+  year={2017}
+}
+```
+
+AttentiveChrome is a unified architecture to model and to interpret dependencies among chromatin factors for controlling gene regulation. AttentiveChrome uses a hierarchy of multiple Long short-term memory (LSTM) modules to encode the input signals and to model how various chromatin marks cooperate automatically. AttentiveChrome trains two levels of attention jointly with the target prediction, enabling it to attend differentially to relevant marks and to locate important positions per mark. We evaluate the model across 56 different cell types (tasks) in human. Not only is the proposed architecture more accurate, but its attention scores also provide a better interpretation than state-of-the-art feature visualization methods such as saliency map. 
+
+
+## They have extended attentiveChrome to DeepDiffChrome
 
 
 - [DeepDiff: Deep-learning for predicting Differential

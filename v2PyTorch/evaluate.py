@@ -3,7 +3,6 @@ import torch
 import scipy 
 import scipy.sparse as sp
 import logging
-from six.moves import xrange
 from collections import OrderedDict
 import sys
 import pdb
@@ -11,6 +10,7 @@ from sklearn import metrics
 import torch.nn.functional as F
 from torch.autograd import Variable
 from pdb import set_trace as stop
+import math
 
 
 def compute_aupr(all_targets,all_predictions):
@@ -57,7 +57,7 @@ def compute_metrics(predictions, targets):
 	mean_auc,median_auc,var_auc,auc_array = compute_auc(targets,pred)
 	mean_aupr,median_aupr,var_aupr,aupr_array = compute_aupr(targets,pred)
 
-
+    # return mean_aupr,median_aupr,var_aupr,mean_auc,median_auc,var_auc
 	return mean_aupr,mean_auc
 
 
