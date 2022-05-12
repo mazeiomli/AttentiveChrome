@@ -49,16 +49,11 @@ def compute_auc(all_targets,all_predictions):
 
 
 def compute_metrics(predictions, targets):
+    pred=predictions.numpy()
+    targets=targets.numpy()
 
-
-	pred=predictions.numpy()
-	targets=targets.numpy()
-
-	mean_auc,median_auc,var_auc,auc_array = compute_auc(targets,pred)
-	mean_aupr,median_aupr,var_aupr,aupr_array = compute_aupr(targets,pred)
+    mean_auc,median_auc,var_auc,auc_array = compute_auc(targets,pred)
+    mean_aupr,median_aupr,var_aupr,aupr_array = compute_aupr(targets,pred)
 
     # return mean_aupr,median_aupr,var_aupr,mean_auc,median_auc,var_auc
-	return mean_aupr,mean_auc
-
-
-
+    return mean_aupr,mean_auc
