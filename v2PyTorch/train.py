@@ -273,6 +273,8 @@ if(args.test_on_saved_model==False):
         # metrics for best avgAUC model
         print("best valid avgAUC:", best_valid_avgAUC)
         print("best test avgAUC:", best_test_avgAUC)
+        # flush output each iteration to see live updates
+        sys.stdout.flush()
 
     train_end_time = timer()
     # training time in minutes
