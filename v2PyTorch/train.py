@@ -23,6 +23,10 @@ import csv
 from pdb import set_trace as stop
 
 from timeit import default_timer as timer
+from datetime import datetime
+now = datetime.now()
+dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+print('Starting at time: ', dt_string)
 
 # python train.py --cell_type=Cell1 --model_name=attchrome --epochs=120 --lr=0.0001 --data_root=data/ --save_root=Results/
 
@@ -73,6 +77,10 @@ args.save_root = os.path.join(args.save_root,args.dataset)
 print('saving results in  from: ',args.save_root)
 model_dir = os.path.join(args.save_root,model_name)
 if not os.path.exists(model_dir):
+    # when exist_ok=False, errors if target directory already exists
+    # doesn't error if intermediate dirs exist
+    # here, exist_ok=False is fine since we check if
+    # model_dir exists first
     os.makedirs(model_dir)
 
 
@@ -197,14 +205,18 @@ def test(ValidData,split_name):
 
 # best_valid_loss not used
 best_valid_loss = 10000000000
+# save valid and test metrics of best model wrt avgAUPR
 best_valid_avgAUPR=-1
+best_test_avgAUPR=-1
+valid_metrics_best_valid_avgAUPR = []
+test_metrics_best_valid_avgAUPR = []
+epoch_best_balid_avgAUPR = -1
+# save valid and test metrics of best model wrt avgAUC
 best_valid_avgAUC=-1
 best_test_avgAUC=-1
-best_test_avgAUPR=-1
-# save valid and test metrics of best model
-valid_metrics_best_model = []
-test_metrics_best_model = []
-best_epoch = -1
+valid_metrics_best_valid_avgAUC = []
+test_metrics_best_valid_avgAUC = []
+epoch_best_valid_avgAUC = -1
 if(args.test_on_saved_model==False):
     # measure training time
     train_start_time = timer()
@@ -222,24 +234,43 @@ if(args.test_on_saved_model==False):
         predictions,diff_targets,alpha_test,beta_test,test_loss,gene_ids_test = test(Test,'Testing')
         test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC = evaluate.compute_metrics(predictions,diff_targets)
 
-        # use avgAUC to determine best model
+        # if valid_avgAUC improved, save model checkpoint and stats
         if(valid_avgAUC >= best_valid_avgAUC):
             # save best epoch -- models converge early
-            print(f'Saving new best model at epoch {epoch}...')
+            print('Saving new best validation avgAUC model at epoch ', epoch, '...')
             best_valid_avgAUC = valid_avgAUC
             best_test_avgAUC = test_avgAUC
-            best_epoch = epoch+1
-            valid_metrics_best_model = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
-            test_metrics_best_model = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
+            epoch_best_valid_avgAUC = epoch+1
+            valid_metrics_best_valid_avgAUC = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
+            test_metrics_best_valid_avgAUC = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
             torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUC_model.pt')
             model.type(dtype)
 
+        # if valid_avgAUPR improved, save model checkpoint and stats
+        if(valid_avgAUPR >= best_valid_avgAUPR):
+            # save best epoch -- models converge early
+            print('Saving new best validation avgAUPR model at epoch ', epoch, '...')
+            best_valid_avgAUPR = valid_avgAUPR
+            best_test_avgAUPR = test_avgAUPR
+            epoch_best_balid_avgAUPR = epoch+1
+            valid_metrics_best_valid_avgAUPR = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
+            test_metrics_best_valid_avgAUPR = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
+            torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUPR_model.pt')
+            model.type(dtype)
+
         print("Epoch:",epoch)
-        # train, valid, test metrics for the epoch
+        # train, valid, test AUPR metrics for the epoch
+        print("train avgAUPR:",train_avgAUPR)
+        print("valid avgAUPR:",valid_avgAUPR)
+        print("test avgAUPR:",test_avgAUPR)
+        # metrics for best avgAUPR model
+        print("best valid avgAUPR:", best_valid_avgAUPR)
+        print("best test avgAUPR:", best_test_avgAUPR)
+        # train, valid, test AUC metrics for the epoch
         print("train avgAUC:",train_avgAUC)
         print("valid avgAUC:",valid_avgAUC)
         print("test avgAUC:",test_avgAUC)
-        # metrics for best model
+        # metrics for best avgAUC model
         print("best valid avgAUC:", best_valid_avgAUC)
         print("best test avgAUC:", best_test_avgAUC)
 
@@ -248,11 +279,20 @@ if(args.test_on_saved_model==False):
     train_elapsed_time = round((train_end_time - train_start_time) / (60), 3)
     print("\nFinished training")
     print("Training time (min): ", train_elapsed_time)
-    print("Best epoch: ", best_epoch)
-    print("Best validation avgAUC:",best_valid_avgAUC)
-    print("Best test avgAUC:",best_test_avgAUC)
-    print("copypaste header: test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC, valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC")
-    print(','.join([str(x) for x in test_metrics_best_model] + [str(x) for x in valid_metrics_best_model]))
+    # print metrics for best valid avgAUPR model
+    print("Best epoch for valid avgAUPR: ", epoch_best_balid_avgAUPR)
+    print("Best validation avgAUPR: ", best_valid_avgAUPR)
+    print("Best test avgAUPR: ", best_test_avgAUPR)
+    print("Copypaste metrics for best valid avgAUPR")
+    print(','.join([str(x) for x in test_metrics_best_valid_avgAUPR] + [str(x) for x in valid_metrics_best_valid_avgAUPR]))
+
+    # print metrics for best valid avgAUC model
+    print("\nBest epoch for valid avgAUC: ", epoch_best_valid_avgAUC)
+    print("Best validation avgAUC: ",best_valid_avgAUC)
+    print("Best test avgAUC: ",best_test_avgAUC)
+    # print("copypaste header: test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC, valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC")
+    print("Copypaste metrics for best valid avgAUC")
+    print(','.join([str(x) for x in test_metrics_best_valid_avgAUC] + [str(x) for x in valid_metrics_best_valid_avgAUC]))
 
 
     if(args.save_attention_maps):
