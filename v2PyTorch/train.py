@@ -243,7 +243,7 @@ if(args.test_on_saved_model==False):
             epoch_best_valid_avgAUC = epoch+1
             valid_metrics_best_valid_avgAUC = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
             test_metrics_best_valid_avgAUC = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
-            torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUC_model_epoch_'+str(epoch+1)+'.pt')
+            torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUC_model.pt')
             model.type(dtype)
 
         # if valid_avgAUPR improved, save model checkpoint and stats
@@ -255,7 +255,7 @@ if(args.test_on_saved_model==False):
             epoch_best_balid_avgAUPR = epoch+1
             valid_metrics_best_valid_avgAUPR = [valid_avgAUPR, valid_medAUPR, valid_varAUPR, valid_avgAUC, valid_medAUC, valid_varAUC]
             test_metrics_best_valid_avgAUPR = [test_avgAUPR, test_medAUPR, test_varAUPR, test_avgAUC, test_medAUC, test_varAUC]
-            torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUPR_model_epoch_'+str(epoch+1)+'.pt')
+            torch.save(model.cpu().state_dict(),model_dir+"/"+model_name+'_avgAUPR_model.pt')
             model.type(dtype)
 
         print("Epoch:",epoch)
