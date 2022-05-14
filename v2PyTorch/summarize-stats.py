@@ -62,7 +62,12 @@ parser.add_argument('save_root', type=str,
 parser.add_argument('--model_type', type=str, default='attchrome', help='DeepDiff variation')
 args = parser.parse_args()
 
+# Check all 56 cell types present
+expected_num_cell_types = 56
 cell_types = sorted(os.listdir(args.save_root))
+assert len(cell_types) == expected_num_cell_types, \
+    'number of cell types not equal to expected! ' \
+    'len(cell_types) = ' + str(len(cell_types))
 
 last_n_lines_needed = 14
 
