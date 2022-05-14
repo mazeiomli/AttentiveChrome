@@ -8,7 +8,7 @@ DATA_DIR=$1
 SAVE_ROOT=$2
 # loop through all subdirectories in $DATA_DIR
 for d in $DATA_DIR/*/ ; do
-    # full path of dir including trailing /
+    # $d is full path of dir including trailing /
     CELL_TYPE=$(basename $d)
     MODEL_NAME=${CELL_TYPE}_attchrome
     CONTAINING_RESULT_DIR=$SAVE_ROOT/$CELL_TYPE/$MODEL_NAME

@@ -5,3 +5,6 @@ __pycache__/
 
 # ignore non-Toy data
 **/data/E*
+
+#ignore results dir
+results/
