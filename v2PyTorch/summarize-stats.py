@@ -178,10 +178,34 @@ for best_k, best_dict in acc.items():
     copypastes_for_metrics = [','.join(np.char.mod('%.4g', stacked[:, i])) for i in range(stacked.shape[1])]
     # print copypaste for model best_valid_avgAUPR/best_valid_avgAUC
     print(best_k, 'copypaste:')
+    # 65 columns total
+    # column names: mean best epoch for validation avgAUPR/avgAUC, median ..., variance of ...,
+    # minimum ..., maximum ..., mean over cell type models of mean AUPR over test set,
+    # median over cell type models of mean AUPR over test set, variance ..., minimum ...,
+    # maximum ..., mean over cell type models of median AUPR over test set, median ...,
+    # variance ..., minimum ..., maximum ..., mean over celltype models of varaince of AUPR
+    # over test set, median ..., variance ..., minimum ..., maximum ...,
+    # mean over cell type models of mean AUC over test set,
+    # median over cell type models of mean AUC over test set, variance ..., minimum ...,
+    # maximum ..., mean over cell type models of median AUC over test set, median ...,
+    # variance ..., minimum ..., maximum ..., mean over celltype models of varaince of AUC
+    # over test set, median ..., variance ..., minimum ..., maximum ...,
+    # mean over cell type models of mean AUPR over validation set,
+    # median over cell type models of mean AUPR over validation set, variance ..., minimum ...,
+    # maximum ..., mean over cell type models of median AUPR over validation set, median ...,
+    # variance ..., minimum ..., maximum ..., mean over celltype models of varaince of AUPR
+    # over validation set, median ..., variance ..., minimum ..., maximum ...,
+    # mean over cell type models of mean AUC over validation set,
+    # median over cell type models of mean AUC over validation set, variance ..., minimum ...,
+    # maximum ..., mean over cell type models of median AUC over validation set, median ...,
+    # variance ..., minimum ..., maximum ..., mean over celltype models of varaince of AUC
+    # over validation set, median ..., variance ..., minimum ..., maximum ...
     print(','.join([str(round(f, 4)) for f in summary_stats[best_k]['best_epoch']] + copypastes_for_metrics))
 
 
 # training time copy paste
 training_time_copypaste = ','.join([str(total_training_time_hrs)] + list(np.char.mod('%.4g', training_time_sum_stats)))
 print('training time copy paste (not a characteristic of a saved best model)')
+# column names: total training time, mean training time per model, median training time per model
+# variance of training time for model, minimum ..., maximum ...
 print(training_time_copypaste)
