@@ -7,7 +7,7 @@ Spring 2022
 
 First install [miniconda](https://docs.conda.io/en/latest/miniconda.html).
 
-## Getting the development environment
+## Recommended: Getting the development environment
 If you want to run the scripts (e.g. `train.py`, `evaluate.py`), you'll need the development environment.
 
 I was unable to install kipoi in this environment due to conda conflicts. To run AttentiveChrome through kipoi, please use the environment in the next subsection.
@@ -32,6 +32,13 @@ cd v2PyTorch/
 python3 v2PyTorch/train.py --cell_type Toy
 ```
 
+Relevant Software in this environment:
+- pytorch 1.11.0 and torchvision with gpu
+- sci-kit learn
+- numpy
+
+See the environment yml files for details.
+
 ## Running AttentiveChrome through kipoi
 
 Install kipoi with pip following the [directions](https://kipoi.org/docs/#installation). Note that our models are type pytorch so it probably isn't necessary to downgrade h5py.
@@ -49,7 +56,66 @@ You can now run the AttentiveChrome demo script: [./v2PyTorch/attentiveChrome_ki
 
 `python3 v2PyTorch/attentiveChrome_kipoi_tutorial.py`
 
+Relevant Software in this environment:
+- pytorch and torchvision with cpu
+- numpy
+I believe that the latest versions are downloaded.
+
 I was unable to install `jupyter` and `notebook` inside the `kipoi-AttentiveChrome` environment due to conda conflicts, so I couldn't run [./v2PyTorch/attentiveChrome_kipoi_tutorial.ipynb](./v2PyTorch/attentiveChrome_kipoi_tutorial.ipynb)
+
+# Model Training and Evaluation
+
+You must have the development environment.
+
+Training a model for each cell type:
+```
+# train model for each cell type
+# first param: data dir
+# second param: save dir
+# Note there is no trailing / on both paths!
+./train-over-cell-types.sh /path/to/data/root /path/to/save/root
+
+# you can now browse the log files to see model performance
+# model checkpoints are also saved for future evaluation
+
+# parse evaluation from log files and print metrics
+# in csv format for ease of copy paste
+# see the script for the column names
+python3 summarize-stats.py /vulcanscratch/lieric/858d/results/train-all-1
+```
+
+Training a model for one cell type:
+`python3 train.py --save_root /path/to/save/root --data_root /path/to/data/root --epochs 30 --cell_type E005 > E005_attchrome.log`
+
+The program runs on at most one GPU. A GPU is highly recommended for faster training.
+
+# Description of Files
+- `dev-environment*.yml`: specifies the conda environment
+- `v2PyTorch/`: contains the AttentiveChrome PyTorch model
+  - `train.py`: the main script. Can train a celltype specific model from scratch. It can also evaluate off of a saved model checkpoint. Do `python3 train.py -h` to see all command line arguments.
+  - `train-over-cell-types.sh`: script that will train all 56 celltype models and save the log file
+  - `summarize-stats.py`: parses the saved log file to compute summary statistics across all 56 models
+  - `models.py`: contains PyTorch implementation of AttentiveChrome
+  - `data.py`: contains functions to load in data
+  - `evaluate.py`: evaluation functions
+  - `data/Toy`: contains a toy (very small) dataset. Any data downloaded should go in the `data/` directory.
+  - `kipoiUtil/`: files necessary for the kipoi model zoo, command line interface, and inference.
+  - `attentiveChrome_kipoi_tutorial.{py, ipynb}`: demo using kipoi of AttentiveChrome
+
+There was no software testing done since it was not necessary.
+
+
+# Datasets
+
+The complete set of 56 Cell Type datasets is located at https://zenodo.org/record/2652278. **This is what I downloaded and trained on.** This is the preprocessed data. The preprocessing procedure is described in the section "Feature Generation for AttentiveChrome model." See [here](https://github.com/QData/DeepChrome/blob/master/CellInfo.pdf) for a list of cell types.
+
+There is a toy dataset to test out model in the data subdirectory of v2PyTorch
+
+The rows are bins for all genes (100 rows per gene) and the columns are organised as follows:
+
+GeneID, Bin ID, H3K27me3 count, H3K36me3 count, H3K4me1 count, H3K4me3 count, H3K9me3 counts, Binary Label for gene expression (0/1)  
+e.g. 000003,1,4,3,0,8,4,1
+
 
 # Feature Generation for AttentiveChrome model:
 
@@ -61,35 +127,11 @@ bedtools bedtobam -i <filename>.tagAlign -g hg19chrom.sizes > <filename>.bam
 Next, we used "bedtools multicov" to get the read counts. 
 Bins of length 100 base-pairs (bp) are selected from regions (+/- 5000 bp) flanking the transcription start site (TSS) of each gene. The signal value of all five selected histone modifications from REMC in bins forms input matrix X, while discretized gene expression (label +1/-1) is the output y.
 
-For gene expression, we used the RPKM read count files available in REMC database. We took the median of the RPKM read counts as threshold for assigning binary labels (-1: gene low, +1: gene high). 
+For gene expression, we used the RPKM read count files available in REMC database. We took the median of the RPKM read counts as threshold for assigning binary labels (0: gene low, +1: gene high). 
 
 We divided the genes into 3 separate sets for training, validation and testing. It was a simple file split resulting into 6601, 6601 and 6600 genes respectively. 
 
 We performed training and validation on the first 2 sets and then reported AUC scores of best performing epoch model for the third test data set. 
-
-# Datasets
-
-We have provided a toy dataset to test out model in the data subdirectory of v2PyTorch
-
-The complete set of 56 Cell Type datasets is located at https://zenodo.org/record/2652278
-
-The rows are bins for all genes (100 rows per gene) and the columns are organised as follows:
-
-GeneID, Bin ID, H3K27me3 count, H3K36me3 count, H3K4me1 count, H3K4me3 count, H3K9me3 counts, Binary Label for gene expression (0/1)  
-e.g. 000003,1,4,3,0,8,4,1
-
-**Running The Model** 
-
-See the v2PyTorch directory to run the code.
-
-
-
-# v2PyTorch folder includes Pytorch version of the  AttentiveChrome Implementation. 
-You can run it via the following command: 
-
-```
-python train.py --cell_type Toy
-```
 
 
 
